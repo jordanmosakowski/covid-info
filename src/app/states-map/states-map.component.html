@@ -167,9 +167,9 @@
   <circle class="state borders dccircle dc" id="DC" cx="801.6" cy="252.1" r="5"></circle>
   <path class="separator1" fill="none" d="m 215,493 v 55 l 36,45 m -251,-168 h 147 l 68,68 h 85 l 54,54 v 46"/>
 </svg><br>
-<mat-form-field appearance="fill">
-  <mat-label>Choose a date</mat-label>
-  <input matInput [matDatepicker]="picker" [(ngModel)]="date" [min]="minDate" [max]="maxDate" (dateInput)="setDate(this.date)">
-  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-  <mat-datepicker #picker></mat-datepicker>
-</mat-form-field>
+<div id="tooltip" #tooltip>
+  <span>
+    {{tooltipState}}
+  </span><br>
+    {{((data || {})[tooltipState] || {}).value || ""}}
+</div>

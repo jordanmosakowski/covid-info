@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
-import { StatesComponent } from './states/states.component';
 import {HttpClientModule} from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {MatDatepickerModule} from '@angular/material/datepicker';
@@ -10,11 +9,18 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatNativeDateModule} from '@angular/material/core';
 import {MatInputModule} from '@angular/material/input';
 import {FormsModule} from '@angular/forms';
+import {StatesMapComponent} from './states-map/states-map.component';
+import { CountiesMapComponent } from './counties-map/counties-map.component';
+import { StatesPieComponent } from './states-pie/states-pie.component';
+import {GoogleChartsModule} from 'angular-google-charts';
+import {MatSelectModule} from '@angular/material/select';
 
 @NgModule({
   declarations: [
     AppComponent,
-    StatesComponent
+    StatesMapComponent,
+    CountiesMapComponent,
+    StatesPieComponent
   ],
   imports: [
     BrowserModule,
@@ -24,7 +30,9 @@ import {FormsModule} from '@angular/forms';
     MatFormFieldModule,
     MatNativeDateModule,
     MatInputModule,
-    FormsModule
+    FormsModule,
+    GoogleChartsModule,
+    MatSelectModule
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -1,0 +1,34 @@
+.state path, circle{
+  fill: white;
+  stroke: black;
+  stroke-width: 1px;
+  transition: stroke 0.5s, fill 0.5s;
+}
+
+.borders path{
+  stroke: black;
+  stroke-width: 0px;
+}
+
+mat-slider{
+  width: 500px;
+}
+
+#tooltip{
+  background-color: #dddddd;
+  padding: 15px;
+  position:absolute;
+  border-radius: 5px;
+  display:none;
+  width: 130px;
+  height: 45px;
+}
+#tooltip span{
+  font-weight: bold;
+}
+
+
+
+:host{
+  z-index: 2;
+}
