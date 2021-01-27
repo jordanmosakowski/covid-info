@@ -1,20 +1,56 @@
 <mat-form-field appearance="fill">
-  <mat-label>Choose a date</mat-label>
-  <input matInput [matDatepicker]="picker" [(ngModel)]="date" [min]="minDate" [max]="maxDate" (dateInput)="setDate(this.date)">
-  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-  <mat-datepicker #picker></mat-datepicker>
+  <mat-label>Enter a date range</mat-label>
+  <mat-date-range-input [rangePicker]="rangePicker" [min]="minDate" [max]="maxDate">
+    <input matStartDate placeholder="Start date" [(ngModel)]="startDate">
+    <input matEndDate placeholder="End date" [(ngModel)]="endDate" (dateChange)="updateGraphDateRange($event.target.value)">
+  </mat-date-range-input>
+  <mat-datepicker-toggle matSuffix [for]="rangePicker"></mat-datepicker-toggle>
+  <mat-date-range-picker #rangePicker></mat-date-range-picker>
 </mat-form-field>
+<!--<mat-form-field appearance="fill">-->
+<!--  <mat-label>Choose a date</mat-label>-->
+<!--  <input matInput [matDatepicker]="picker" [(ngModel)]="date" [min]="minDate" [max]="maxDate" (dateInput)="setDate(this.date)">-->
+<!--  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>-->
+<!--  <mat-datepicker #picker></mat-datepicker>-->
+<!--</mat-form-field>-->
 <mat-form-field appearance="fill">
   <mat-label>Data To Show</mat-label>
-  <mat-select [(value)]="selectedDataOption" (selectionChange)="updateSelectedData($event.value)">
+  <mat-select [(value)]="selectedDataOption" (selectionChange)="updateGraphDataType()"> <!--/*updateSelectedData($event.value)*/-->
     <mat-option *ngFor="let option of dataOptions" [value]="option.id">
       {{option.title}}
     </mat-option>
   </mat-select>
 </mat-form-field>
+<mat-form-field appearance="fill">
+  <mat-label>Statistic</mat-label>
+  <mat-select [(value)]="selectedSpread" (selectionChange)="updateGraphDataStat()">
+    <mat-option *ngFor="let option of spreadOptions" [value]="option.id">
+      {{option.title}}
+    </mat-option>
+  </mat-select>
+</mat-form-field><br>
+<mat-form-field appearance="fill">
+  <mat-label>States to Graph</mat-label>
+  <mat-select [(value)]="selectedStates" multiple (selectionChange)="updateGraphDataStates()">
+    <mat-option *ngFor="let s of statesAndUs" [value]="s">{{stateNames[s]}}</mat-option>
+  </mat-select>
+</mat-form-field>
+
+<div style="display: block; width: 800px; height: 400px;">
+  <canvas baseChart
+          (chartClick)="chartClicked($event)"
+          [datasets]="graphData"
+          [labels]="graphLabels"
+          [options]="graphOptions"
+          [legend]="true"
+          [chartType]="'line'">
+  </canvas>
+</div>
+<h2>{{formatDate(mapDate)}}</h2>
 <h2>US Total: {{usData}}</h2>
 <div id="map-chart">
   <app-states-map [data]="selectedData"></app-states-map>
-<!--  <app-states-pie [data]="this.stateData[this.formatDate(this.date)]"></app-states-pie>-->
 </div>
+
+
 

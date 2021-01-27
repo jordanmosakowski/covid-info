@@ -32,7 +32,6 @@ export class StatesMapComponent implements OnChanges, AfterViewInit {
   @ViewChild("tooltip") tooltip: ElementRef;
 
   updateMap(): void{
-    console.log("Updating", this.data);
     if(this.data==null){
       for(let s of this.states){
         let el = this.map.nativeElement.getElementById(s);

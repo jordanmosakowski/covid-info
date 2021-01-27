@@ -1,5 +1,4 @@
 export interface StatesData{
-  title: string;
   AL?: DisplayData;
   AK?: DisplayData;
   AZ?: DisplayData;

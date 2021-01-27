@@ -11,16 +11,17 @@ import {MatInputModule} from '@angular/material/input';
 import {FormsModule} from '@angular/forms';
 import {StatesMapComponent} from './states-map/states-map.component';
 import { CountiesMapComponent } from './counties-map/counties-map.component';
-import { StatesPieComponent } from './states-pie/states-pie.component';
 import {GoogleChartsModule} from 'angular-google-charts';
 import {MatSelectModule} from '@angular/material/select';
+import { GraphComponent } from './graph/graph.component';
+import {ChartsModule} from 'ng2-charts';
 
 @NgModule({
   declarations: [
     AppComponent,
     StatesMapComponent,
     CountiesMapComponent,
-    StatesPieComponent
+    GraphComponent
   ],
   imports: [
     BrowserModule,
@@ -32,7 +33,8 @@ import {MatSelectModule} from '@angular/material/select';
     MatInputModule,
     FormsModule,
     GoogleChartsModule,
-    MatSelectModule
+    MatSelectModule,
+    ChartsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

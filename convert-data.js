@@ -144,3 +144,31 @@ function getPreviousDay(d) {
   }
   return [year, month, day].join('-');
 }
+
+
+// const countyPop = "countyPopulation.csv";
+// let fipsCounty = require('./data/fips-county.json');
+// loadCountyPopulation();
+//
+// async function loadCountyPopulation(){
+//   const stateNames = {
+//     AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware',
+//     DC: 'District of Columbia', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa',
+//     KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota',
+//     MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey',
+//     NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania',
+//     RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia',
+//     WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming',
+//   };
+//   let rawData = await csv().fromFile(countyPop);
+//   for (const [fips, county] of Object.entries(fipsCounty)){
+//     let countyTitle = "."+county.county+", "+stateNames[county.state];
+//     let res = rawData.find((r) =>r.county === countyTitle);
+//     if(res==null){
+//       res = {population: "0"}
+//       console.log(countyTitle);
+//     }
+//     fipsCounty[fips].population = Number(res.population);
+//   }
+//   fs.writeFileSync('./data/fips-population-county.json',JSON.stringify(fipsCounty))
+// }
