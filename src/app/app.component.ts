@@ -4,6 +4,7 @@ import {StatesData} from './interfaces';
 import {StateData} from './states-map/states-map.component';
 import {BaseChartDirective, Label, MultiDataSet} from 'ng2-charts';
 import {ChartDataSets, ChartOptions} from 'chart.js';
+import * as pluginAnnotations from 'chartjs-plugin-annotation';
 
 @Component({
   selector: 'app-root',
@@ -11,6 +12,9 @@ import {ChartDataSets, ChartOptions} from 'chart.js';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+
+  public lineChartPlugins = [pluginAnnotations];
+
   @ViewChild(BaseChartDirective) myChart: BaseChartDirective;
 
   startDate: Date;
@@ -91,7 +95,9 @@ export class AppComponent {
 
   selectedStates: string[];
   oldSelectedStates: string[];
-  colors = ["#f44336","#e91e63","#9c27b0","#3f51b5","#2196f3","#00bcd4","#4caf50","#ffeb3b","#ff9800","#ff5722"];
+  colors = ["#f44336","#e91e63","#9c27b0","#3f51b5",
+    "#2196f3","#00bcd4","#4caf50","#ffeb3b",
+    "#ff9800","#ff5722"];
 
   colorIndex = 0;
   stateData;
@@ -102,21 +108,43 @@ export class AppComponent {
 
   mapDate: Date;
 
-  graphOptions: (ChartOptions) = {
+  graphOptions = {
     responsive:true,
+    maintainAspectRatio: false,
+    annotation: {
+      annotations: [
+        {
+          id: "dateline",
+          type: 'line',
+          mode: 'vertical',
+          scaleID: 'x-axis-0',
+          value: '2021-01-20',
+          borderColor: 'black',
+          borderWidth: 3,
+        },
+      ],
+    },
     tooltips: {
       intersect: false,
       mode: 'index'
     },
-    elements:
-      {
-        point:
-          {
-            radius: 0,
-            hitRadius: 10,
-            hoverRadius: 0,
-          }
-      }
+    elements: {
+      point:
+        {
+          radius: 0,
+          hitRadius: 10,
+          hoverRadius: 0,
+        }
+    },
+    scales: {
+      yAxes: [{
+        display: true,
+        ticks: {
+          suggestedMin: 0,
+          // beginAtZero: true   // minimum value will be 0.
+        }
+      }]
+    },
   };
   graphLabels: Label[];
   graphData: ChartDataSets[];
@@ -125,7 +153,7 @@ export class AppComponent {
     this.graphLabels = [];
     this.graphData = [];
     this.oldSelectedStates = [];
-    this.selectedStates = [];
+    this.selectedStates = ["US"];
     this.selectedDataOption = "cases";
     this.selectedSpread = "single";
     this.stateData = {};
@@ -172,6 +200,9 @@ export class AppComponent {
     }
     else if(this.selectedDataOption == "deathsPer10M"){
       stat = stat/ this.population[state] * 10000000;
+    }
+    if(stat<0){
+      stat = 0;
     }
     return stat;
   }
@@ -231,6 +262,7 @@ export class AppComponent {
       this.graphData.push({data:this.getStateForRange(state), label: state, backgroundColor: color+"50", borderColor: color+"dd"});
     }
     this.oldSelectedStates = [...this.selectedStates];
+    this.mapDate = new Date(this.endDate.getTime());
     this.updateMap();
   }
 
@@ -292,13 +324,24 @@ export class AppComponent {
     if(elements.length==0){
       return;
     }
-    // console.log(this.graphLabels[elements[0]._index]);
+    let newDate = this.graphLabels[elements[0]._index];
+    if(newDate == null){
+      return;
+    }
+    this.mapDate = this.getDateFromString(newDate.toString());
+    this.updateMap();
   }
 
   getPreviousDay(date) {
     let d = new Date(date.getTime());
     d.setDate(d.getDate() - 1);
     return d;
+  }
+
+  getDateFromString(str: string){
+    let split = str.split("-");
+    return new Date(Number(split[0]), Number(split[1])-1,Number(split[2]));
+
   }
 
   getYYYYMString(d:Date): string{
@@ -336,6 +379,11 @@ export class AppComponent {
   }
 
   updateMap(){
+    // @ts-ignore
+    console.log(this.myChart.chart.annotation);
+    // @ts-ignore
+    this.myChart.chart.annotation.elements['dateline'].options.value = this.formatDate(this.mapDate);
+    this.myChart.chart.update();
     let usTotal = this.getStat(this.mapDate, "US");
     this.selectedData = {};
     for(let s of this.states){
@@ -368,230 +416,6 @@ export class AppComponent {
       }
     }
     this.usData = usTotal.toFixed((this.selectedDataOption == "casesPer100k" || this.selectedDataOption == "deathsPer10M") ? 2 : 0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-      +' '+ ((this.selectedDataOption == "cases" || this.selectedDataOption == "casesPer100k") ? "cases" : "deaths")
+      +' '+ ((this.selectedDataOption == "cases" || this.selectedDataOption == "casesPer100k") ? "cases" : "deaths");
   }
-
-  // async graphSetup(){
-  //   for(let i=0; i<this.graphData.length; i++){
-  //     let data = this.graphData[i];
-  //     if((data?.data?.length || 0)==0){
-  //       this.graphData.splice(i,1);
-  //     }
-  //   }
-  //   let removed = [];
-  //   for(let old of this.oldSelectedStates){
-  //     if(this.selectedStates.indexOf(old)==-1){
-  //       removed.push(old);
-  //     }
-  //   }
-  //   let added = [];
-  //   for(let sel of this.selectedStates){
-  //     if(this.oldSelectedStates.indexOf(sel)==-1){
-  //       added.push(sel);
-  //     }
-  //   }
-  //   let daysBack = 207;
-  //   let date = new Date(this.date.getTime());
-  //   for(let i=0; i<daysBack; i++){
-  //     date = this.getPreviousDay(date);
-  //     if(this.stateData[this.formatDate(date)]==null){
-  //       let tempData = localStorage.getItem("state/"+this.getYYYYMString(date));
-  //       if(tempData == null){
-  //         let data: any;
-  //         data = await this.http.get("http://localhost:4201/data/state/"+this.getYYYYMString(date)+".json").toPromise();
-  //         if(data.final==true){
-  //           localStorage.setItem("state/"+this.getYYYYMString(this.date),JSON.stringify(data));
-  //         }
-  //         this.stateData = {...this.stateData, ...data}
-  //       }
-  //       else{
-  //         this.stateData = {...this.stateData, ...JSON.parse(tempData)}
-  //       }
-  //     }
-  //   }
-  //   // this.graphData = [];
-  //   date = new Date(this.date.getTime());
-  //   date.setDate(date.getDate() - daysBack);
-  //   this.graphLabels = [];
-  //   for(let i=0; i<daysBack+1; i++){
-  //     this.graphLabels.push(this.formatDate(date));
-  //     date.setDate(date.getDate() + 1);
-  //   }
-  //   for(let add of added){
-  //     console.log(add);
-  //     date = new Date(this.date.getTime());
-  //     date.setDate(date.getDate() - daysBack);
-  //     let index = this.graphData.length;
-  //     let color = this.getColor();
-  //     this.graphData.push({data:[], label: add, backgroundColor: color+"50", borderColor: color+"dd"});
-  //     for(let i=0; i<daysBack+1; i++){
-  //       let data = this.stateData[this.formatDate(date)];
-  //       this.graphData[index].data.push(data[add].cases);
-  //       date.setDate(date.getDate() + 1);
-  //     }
-  //   }
-  //   for(let remove of removed){
-  //     console.log(remove);
-  //     let index = this.graphData.findIndex((el) => el.label==remove);
-  //     this.graphData.splice(index,1);
-  //     // }
-  //   }
-  //   console.log(this.graphData);
-  //   this.oldSelectedStates = [...this.selectedStates];
-  // }
-
-  // updateSelectedSpread(val){
-  //   this.selectedSpread = val;
-  //   this.setDate(this.date);
-  // }
-
-  // updateSelectedData(val){
-  //   this.selectedDataOption = val;
-  //   this.selectedData = {
-  //     title: "TODO"
-  //   };
-  //   this.usData = "None";
-  //   let data = this.stateData[this.formatDate(this.date)];
-  //   if(data==null){
-  //     return;
-  //   }
-  //   if(val=="cases" || val=="deaths"){
-  //     let usTotal = (val=="cases" ? data.usCases : data.usDeaths) ?? 0;
-  //     if(this.selectedSpread != "single") {
-  //       let daysBack = this.selectedSpread == "rolling14" ? 13 : 6;
-  //       let date = new Date(this.date.getTime());
-  //       for(let i=0; i<daysBack; i++){
-  //         date = this.getPreviousDay(date);
-  //         usTotal += (val=="cases" ? this.stateData[this.formatDate(date)].usCases : this.stateData[this.formatDate(date)].usDeaths) ?? 0;
-  //       }
-  //       usTotal = usTotal/(this.selectedSpread=="rolling14" ? 14.0 : 7.0);
-  //     }
-  //     this.usData = usTotal.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")+' '+val
-  //     for(let s of this.states){
-  //       let stateData: StateData;
-  //       stateData = data[s] ?? {};
-  //
-  //       let stateCount = (val=="cases" ? stateData.cases : stateData.deaths) ?? 0;
-  //       if(this.selectedSpread != "single") {
-  //         let daysBack = this.selectedSpread == "rolling14" ? 13 : 6;
-  //         let date = new Date(this.date.getTime());
-  //         for(let i=0; i<daysBack; i++){
-  //           date = this.getPreviousDay(date);
-  //           let dayData = this.stateData[this.formatDate(date)];
-  //           if(dayData==null){
-  //             continue;
-  //           }
-  //           let stateDayData: StateData;
-  //           stateDayData = dayData[s] ?? {};
-  //           stateCount += (val=="cases" ? stateDayData.cases: stateDayData.deaths) ?? 0;
-  //         }
-  //         stateCount = stateCount/(this.selectedSpread=="rolling14" ? 14.0 : 7.0);
-  //       }
-  //       let adjustedValue = Math.round(255 - stateCount/usTotal*255.0 * 7.0);
-  //       if(adjustedValue<0){
-  //         adjustedValue = 0;
-  //       }
-  //       let hex = adjustedValue.toString(16);
-  //       if(hex.length==1){
-  //         hex = "0"+hex;
-  //       }
-  //       this.selectedData[s] = {
-  //         value: stateCount.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")+' '+val,
-  //         color: "#ff" + hex + hex
-  //       }
-  //     }
-  //   }
-  //   else if(val=="casesPer100k" || val=="deathsPer10M"){
-  //     let usTotal = (val=="casesPer100k" ? data.usCases : data.usDeaths) ?? 0;
-  //     if(this.selectedSpread != "single") {
-  //       let daysBack = this.selectedSpread == "rolling14" ? 13 : 6;
-  //       let date = new Date(this.date.getTime());
-  //       for(let i=0; i<daysBack; i++){
-  //         date = this.getPreviousDay(date);
-  //         usTotal += (val=="casesPer100k" ? this.stateData[this.formatDate(date)].usCases : this.stateData[this.formatDate(date)].usDeaths) ?? 0;
-  //       }
-  //       usTotal = usTotal/(this.selectedSpread=="rolling14" ? 14.0 : 7.0);
-  //     }
-  //     this.usData = (usTotal/this.population.US*(val=="casesPer100k" ? 100000 : 10000000)).toFixed(2)+""+(val=="casesPer100k" ? "/100k" : "/10M");
-  //     for(let s of this.states){
-  //       let stateData: StateData;
-  //       stateData = data[s] ?? {};
-  //
-  //       let stateCount = (val=="casesPer100k" ? stateData.cases : stateData.deaths) ?? 0;
-  //       if(this.selectedSpread != "single") {
-  //         let daysBack = this.selectedSpread == "rolling14" ? 13 : 6;
-  //         let date = new Date(this.date.getTime());
-  //         for(let i=0; i<daysBack; i++){
-  //           date = this.getPreviousDay(date);
-  //           let dayData = this.stateData[this.formatDate(date)];
-  //           if(dayData==null){
-  //             continue;
-  //           }
-  //           let stateDayData: StateData;
-  //           stateDayData = dayData[s] ?? {};
-  //           stateCount += (val=="casesPer100k" ? stateDayData.cases: stateDayData.deaths) ?? 0;
-  //         }
-  //         stateCount = stateCount/(this.selectedSpread=="rolling14" ? 14.0 : 7.0);
-  //       }
-  //       let dataPer = stateCount/this.population[s]*(val=="casesPer100k" ? 100000 : 10000000);
-  //       console.log(dataPer);
-  //       let adjustedValue = Math.round(255 - dataPer * (val=="casesPer100k" ? 2.5 : 1));
-  //       if(adjustedValue<0){
-  //         adjustedValue = 0;
-  //       }
-  //       let hex = adjustedValue.toString(16);
-  //       if(hex.length==1){
-  //         hex = "0"+hex;
-  //       }
-  //       this.selectedData[s] = {
-  //         value: dataPer.toFixed(2)+""+(val=="casesPer100k" ? "/100k" : "/10M"),
-  //         color: "#ff" + hex + hex
-  //       }
-  //     }
-  //   }
-  // }
-
-  // async setDate(newDate: Date): Promise<void>{
-  //   this.date = newDate;
-  //   console.log(this.date);
-  //   console.log(this.formatDate(this.date));
-  //   if(this.stateData[this.formatDate(this.date)]==null){
-  //     let tempData = localStorage.getItem("state/"+this.getYYYYMString(this.date));
-  //     if(tempData == null){
-  //       let data: any;
-  //       data = await this.http.get("http://localhost:4201/data/state/"+this.getYYYYMString(this.date)+".json").toPromise();
-  //       if(data.final==true){
-  //         localStorage.setItem("state/"+this.getYYYYMString(this.date),JSON.stringify(data));
-  //       }
-  //       this.stateData = {...this.stateData, ...data}
-  //     }
-  //     else{
-  //       this.stateData = {...this.stateData, ...JSON.parse(tempData)}
-  //     }
-  //   }
-  //   if(this.selectedSpread != "single"){
-  //    let daysBack = (this.selectedSpread=="rolling14" || this.selectedSpread=="trend14") ? 13 : 6;
-  //    let date = new Date(this.date.getTime());
-  //    for(let i=0; i<daysBack; i++){
-  //      date = this.getPreviousDay(date);
-  //      if(this.stateData[this.formatDate(date)]==null){
-  //        let tempData = localStorage.getItem("state/"+this.getYYYYMString(date));
-  //        if(tempData == null){
-  //          let data: any;
-  //          data = await this.http.get("http://localhost:4201/data/state/"+this.getYYYYMString(date)+".json").toPromise();
-  //          if(data.final==true){
-  //            localStorage.setItem("state/"+this.getYYYYMString(this.date),JSON.stringify(data));
-  //          }
-  //          this.stateData = {...this.stateData, ...data}
-  //        }
-  //        else{
-  //          this.stateData = {...this.stateData, ...JSON.parse(tempData)}
-  //        }
-  //      }
-  //     }
-  //   }
-  //   this.updateSelectedData(this.selectedDataOption);
-  //   await this.graphSetup();
-  // }
-
 }

@@ -7,12 +7,6 @@
   <mat-datepicker-toggle matSuffix [for]="rangePicker"></mat-datepicker-toggle>
   <mat-date-range-picker #rangePicker></mat-date-range-picker>
 </mat-form-field>
-<!--<mat-form-field appearance="fill">-->
-<!--  <mat-label>Choose a date</mat-label>-->
-<!--  <input matInput [matDatepicker]="picker" [(ngModel)]="date" [min]="minDate" [max]="maxDate" (dateInput)="setDate(this.date)">-->
-<!--  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>-->
-<!--  <mat-datepicker #picker></mat-datepicker>-->
-<!--</mat-form-field>-->
 <mat-form-field appearance="fill">
   <mat-label>Data To Show</mat-label>
   <mat-select [(value)]="selectedDataOption" (selectionChange)="updateGraphDataType()"> <!--/*updateSelectedData($event.value)*/-->
@@ -28,7 +22,7 @@
       {{option.title}}
     </mat-option>
   </mat-select>
-</mat-form-field><br>
+</mat-form-field>
 <mat-form-field appearance="fill">
   <mat-label>States to Graph</mat-label>
   <mat-select [(value)]="selectedStates" multiple (selectionChange)="updateGraphDataStates()">
@@ -36,21 +30,27 @@
   </mat-select>
 </mat-form-field>
 
-<div style="display: block; width: 800px; height: 400px;">
-  <canvas baseChart
-          (chartClick)="chartClicked($event)"
-          [datasets]="graphData"
-          [labels]="graphLabels"
-          [options]="graphOptions"
-          [legend]="true"
-          [chartType]="'line'">
-  </canvas>
-</div>
-<h2>{{formatDate(mapDate)}}</h2>
-<h2>US Total: {{usData}}</h2>
-<div id="map-chart">
-  <app-states-map [data]="selectedData"></app-states-map>
-</div>
+<main>
+  <div style="display: block;" id="graph">
+    <canvas baseChart
+            (chartClick)="chartClicked($event)"
+            [datasets]="graphData"
+            [labels]="graphLabels"
+            [options]="graphOptions"
+            [legend]="true"
+            [plugins]="lineChartPlugins"
+            [chartType]="'line'">
+    </canvas>
+  </div>
+  <div>
+    <span id="map-date">{{formatDate(mapDate)}}</span><br>
+    <span id="map-us">US Total: {{usData}}</span>
+    <div id="map-chart">
+      <app-states-map [data]="selectedData"></app-states-map>
+    </div>
+  </div>
+
+</main>
 
 
 

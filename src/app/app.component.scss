@@ -1,7 +1,21 @@
-#map-chart{
-  display:flex;
+//#map-chart{
+//  display:flex;
+//}
+
+main{
+  display: grid;
+  grid-template-columns: 50vw auto;
 }
 
-:host{
-  padding: 10px;
+canvas{
+  height: 100%;
+}
+
+#map-date{
+  font-size: 20px;
+  font-weight: bold;
+}
+
+mat-form-field{
+  margin-right: 10px;
 }
