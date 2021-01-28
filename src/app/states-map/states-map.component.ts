@@ -1,15 +1,15 @@
 import {AfterViewInit, Component, ElementRef, Input, OnChanges, OnInit, ViewChild} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {DisplayData, StatesData} from '../interfaces';
+import {DisplayData} from '../interfaces';
 
 @Component({
   selector: 'app-states-map',
   templateUrl: './states-map.component.html',
   styleUrls: ['./states-map.component.scss']
 })
-export class StatesMapComponent implements OnChanges, AfterViewInit {
+export class StatesMapComponent implements OnChanges, AfterViewInit{
 
-  @Input() data: StatesData;
+  @Input() data;
 
   states = [
     'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS',
@@ -23,6 +23,10 @@ export class StatesMapComponent implements OnChanges, AfterViewInit {
     this.showingDeaths = false;
     this.tooltipState = "NONE";
   }
+
+  // ngOnInit(): void {
+  //   this.updateMap();
+  // }
 
   ngOnChanges(): void {
     this.updateMap();
@@ -42,6 +46,9 @@ export class StatesMapComponent implements OnChanges, AfterViewInit {
     for(let s of this.states){
       let stateData: DisplayData;
       stateData = this.data[s];
+      if(this.map==null){
+        continue;
+      }
       let el = this.map.nativeElement.getElementById(s);
       if(stateData == null){
         el.style.fill = "#ffffff";
@@ -49,28 +56,6 @@ export class StatesMapComponent implements OnChanges, AfterViewInit {
       }
       el.style.fill = stateData.color;
     }
-    // const usTotal = this.showingDeaths ? this.data.usDeaths : this.data.usCases;
-    // // const usTotal = this.showingDeaths ? selectedData.usTotalDeaths : selectedData.usTotalCases;
-    // for(let s of this.states){
-    //   let stateData: StateData;
-    //   stateData = this.data[s];
-    //   let el = this.map.nativeElement.getElementById(s);
-    //   if(stateData == null || usTotal==0){
-    //     el.style.fill = "#ffffff";
-    //     continue;
-    //   }
-    //   let stateCount = this.showingDeaths ? stateData.deaths : stateData.cases;
-    //   // let stateCount = this.showingDeaths ? stateData.totalDeaths : stateData.totalCases;
-    //   let adjustedValue = Math.round(255 - stateCount/usTotal*255.0 * 7.0);
-    //   if(adjustedValue<0){
-    //     adjustedValue = 0;
-    //   }
-    //   let hex = adjustedValue.toString(16);
-    //   if(hex.length==1){
-    //     hex = "0"+hex;
-    //   }
-    //   el.style.fill = "#ff" + hex + hex;
-    // }
   }
 
   showTooltip(s:string){
@@ -83,6 +68,7 @@ export class StatesMapComponent implements OnChanges, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    this.updateMap();
     this.map.nativeElement.addEventListener('mousemove', e => {
       this.tooltip.nativeElement.style.top = e.offsetY.toString()+"px";
       this.tooltip.nativeElement.style.left = e.offsetX.toString()+"px";

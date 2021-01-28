@@ -13,15 +13,15 @@ import {StatesMapComponent} from './states-map/states-map.component';
 import { CountiesMapComponent } from './counties-map/counties-map.component';
 import {GoogleChartsModule} from 'angular-google-charts';
 import {MatSelectModule} from '@angular/material/select';
-import { GraphComponent } from './graph/graph.component';
 import {ChartsModule} from 'ng2-charts';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {MatButtonModule} from '@angular/material/button';
 
 @NgModule({
   declarations: [
     AppComponent,
     StatesMapComponent,
     CountiesMapComponent,
-    GraphComponent
   ],
   imports: [
     BrowserModule,
@@ -34,7 +34,9 @@ import {ChartsModule} from 'ng2-charts';
     FormsModule,
     GoogleChartsModule,
     MatSelectModule,
-    ChartsModule
+    ChartsModule,
+    MatSlideToggleModule,
+    MatButtonModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

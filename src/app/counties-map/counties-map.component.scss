@@ -1,0 +1,33 @@
+#outlines path {
+  fill: white;
+  stroke: black;
+  stroke-width: 0.2px;
+  transition: stroke 0.5s, fill 0.5s;
+}
+
+#lines{
+  stroke: #221e1f;
+  stroke-width: 0.8;
+}
+
+#tooltip{
+  background-color: #dddddd;
+  padding: 15px;
+  position:absolute;
+  border-radius: 5px;
+  display:none;
+  width: 130px;
+  height: 45px;
+}
+#tooltip span{
+  font-weight: bold;
+}
+
+main{
+  position: relative;
+}
+
+
+:host{
+  z-index: 2;
+}

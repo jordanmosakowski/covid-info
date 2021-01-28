@@ -1,10 +1,9 @@
-import {AfterViewInit, Component, ViewChild} from '@angular/core';
+import {Component, ViewChild} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {StatesData} from './interfaces';
-import {StateData} from './states-map/states-map.component';
-import {BaseChartDirective, Label, MultiDataSet} from 'ng2-charts';
-import {ChartDataSets, ChartOptions} from 'chart.js';
+import {BaseChartDirective, Label,} from 'ng2-charts';
+import {ChartDataSets} from 'chart.js';
 import * as pluginAnnotations from 'chartjs-plugin-annotation';
+import * as fipsCountyJson from './fips-county.json';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +11,8 @@ import * as pluginAnnotations from 'chartjs-plugin-annotation';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+
+  fipsData: any = (fipsCountyJson as any).default;
 
   public lineChartPlugins = [pluginAnnotations];
 
@@ -48,7 +49,8 @@ export class AppComponent {
 
   statesAndUs = ["US", 'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS',
     'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC',
-    'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY']
+    'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
+
   selectedDataOption:string;
   dataOptions = [
     {
@@ -95,18 +97,27 @@ export class AppComponent {
 
   selectedStates: string[];
   oldSelectedStates: string[];
+
+  selectedCounties: string[];
+  oldSelectedCounties: string[];
+  countyList: string[];
+
   colors = ["#f44336","#e91e63","#9c27b0","#3f51b5",
     "#2196f3","#00bcd4","#4caf50","#ffeb3b",
     "#ff9800","#ff5722"];
 
   colorIndex = 0;
   stateData;
-  selectedData: StatesData;
-  usData: string;
+  countyData;
+  selectedData: any;
+  totalData: string;
   minDate: Date;
   maxDate: Date;
 
   mapDate: Date;
+
+  showCounties: boolean;
+  countyState: string;
 
   graphOptions = {
     responsive:true,
@@ -141,54 +152,105 @@ export class AppComponent {
         display: true,
         ticks: {
           suggestedMin: 0,
-          // beginAtZero: true   // minimum value will be 0.
         }
       }]
     },
   };
   graphLabels: Label[];
-  graphData: ChartDataSets[];
+  graphData;
 
   constructor(private http: HttpClient) {
+    this.showCounties = false;
     this.graphLabels = [];
     this.graphData = [];
+
     this.oldSelectedStates = [];
     this.selectedStates = ["US"];
-    this.selectedDataOption = "cases";
-    this.selectedSpread = "single";
+
+    this.selectedCounties = [];
+    this.oldSelectedCounties = [];
+    this.countyList = [];
+
+    this.selectedDataOption = "casesPer100k";
+    this.selectedSpread = "rolling7";
+    this.countyState = "CO";
     this.stateData = {};
+    this.countyData = {};
     this.minDate = new Date(2020,0,21);
     this.maxDate = new Date();
 
     this.startDate = new Date(2021,0,1);
     this.endDate = new Date(2021,0,20);
     this.mapDate = this.endDate;
-    this.updateGraphDateRange("2021-01-20");
+    this.updateGraphDateRange(" ");
   }
 
-  getStat(date: Date, state: string){
+  getCountyList(){
+    return [this.countyState, ...this.countyList]
+  }
+
+  toggleStateCounty(){
+    this.showCounties = !this.showCounties;
+    if(this.showCounties){
+      if(this.countyList.length>0){
+        this.updateGraphDateRange(" ");
+      }
+      else{
+        this.changeState();
+      }
+    }
+    else{
+      this.updateGraphDateRange(" ");
+    }
+  }
+
+  changeState(){
+    this.selectedCounties = [this.countyState];
+    this.oldSelectedCounties = [];
+    this.countyList = [];
+    for(let fips of Object.keys(this.fipsData)){
+      if(this.fipsData[fips].state == this.countyState){
+        this.countyList.push(fips);
+      }
+    }
+    this.updateGraphDateRange(" ");
+  }
+
+  getStat(date: Date, area: string){
     let stat: number;
     if(this.selectedSpread == "single"){
-      if(state== "US"){
+      if(area== "US"){
         let data = (this.stateData[this.formatDate(date)] ?? {});
         stat = ((this.selectedDataOption == "cases" || this.selectedDataOption == "casesPer100k") ? data.usCases : data.usDeaths) ?? 0;
       }
       else{
-        let stateData = ((this.stateData[this.formatDate(date)] ?? {})[state] ?? {});
-        stat = ((this.selectedDataOption == "cases" || this.selectedDataOption == "casesPer100k") ? stateData.cases : stateData.deaths) ?? 0;
+        if(this.showCounties && area.length>2){
+          let countyData = ((this.countyData[this.countyState][this.formatDate(date)] ?? {})[area] ?? {});
+          stat = ((this.selectedDataOption == "cases" || this.selectedDataOption == "casesPer100k") ? countyData.cases : countyData.deaths) ?? 0;
+        }
+        else{
+          let stateData = ((this.stateData[this.formatDate(date)] ?? {})[area] ?? {});
+          stat = ((this.selectedDataOption == "cases" || this.selectedDataOption == "casesPer100k") ? stateData.cases : stateData.deaths) ?? 0;
+        }
       }
     }
     else if(this.selectedSpread == "rolling7" || this.selectedSpread == "rolling14"){
       let sum = 0;
       let d = new Date(date.getTime());
       for(let i=0; i<(this.selectedSpread == 'rolling7' ? 7 : 14); i++){
-        if(state== "US"){
+        if(area== "US"){
           let data = (this.stateData[this.formatDate(d)] ?? {});
           sum += ((this.selectedDataOption == "cases" || this.selectedDataOption == "casesPer100k") ? data.usCases : data.usDeaths) ?? 0;
         }
         else{
-          let stateData = ((this.stateData[this.formatDate(d)] ?? {})[state] ?? {});
-          sum += ((this.selectedDataOption == "cases" || this.selectedDataOption == "casesPer100k") ? stateData.cases : stateData.deaths) ?? 0;
+          if(this.showCounties && area.length>2){
+            let countyData = ((this.countyData[this.countyState][this.formatDate(d)] ?? {})[area] ?? {});
+            sum += ((this.selectedDataOption == "cases" || this.selectedDataOption == "casesPer100k") ? countyData.cases : countyData.deaths) ?? 0;
+          }
+          else {
+            let stateData = ((this.stateData[this.formatDate(d)] ?? {})[area] ?? {});
+            sum += ((this.selectedDataOption == "cases" || this.selectedDataOption == "casesPer100k") ? stateData.cases : stateData.deaths) ?? 0;
+          }
         }
         d.setDate(d.getDate() - 1);
       }
@@ -196,10 +258,23 @@ export class AppComponent {
     }
 
     if(this.selectedDataOption == "casesPer100k"){
-      stat = stat / this.population[state] * 100000;
+      if(this.showCounties && area.length>2){
+        if(this.fipsData[area] == null){
+          console.log(area);
+        }
+        stat = stat / this.fipsData[area].population * 100000;
+      }
+      else{
+        stat = stat / this.population[area] * 100000;
+      }
     }
     else if(this.selectedDataOption == "deathsPer10M"){
-      stat = stat/ this.population[state] * 10000000;
+      if(this.showCounties && area.length>2){
+        stat = stat / this.fipsData[area].population * 10000000;
+      }
+      else{
+        stat = stat/ this.population[area] * 10000000;
+      }
     }
     if(stat<0){
       stat = 0;
@@ -207,11 +282,11 @@ export class AppComponent {
     return stat;
   }
 
-  getStateForRange(state: string){
+  getStatForRange(area: string){
     let data = [];
     let date = new Date(this.startDate.getTime());
     while(date.getTime()<=this.endDate.getTime()){
-      data.push(this.getStat(date,state));
+      data.push(this.getStat(date,area));
       date.setDate(date.getDate() + 1);
     }
     return data;
@@ -240,6 +315,27 @@ export class AppComponent {
           this.stateData = {...this.stateData, ...JSON.parse(tempData)}
         }
       }
+      if(this.showCounties && (this.countyData[this.countyState] ?? {})[this.formatDate(date)]==null){
+        let tempData = localStorage.getItem("county/"+this.countyState+"/"+this.getYYYYMString(date));
+        if(tempData == null){
+          let data: any;
+          data = await this.http.get("http://localhost:4201/data/county/"+this.countyState+"/"+this.getYYYYMString(date)+".json").toPromise();
+          //currently it is possible
+          // if(data.final==true){
+          //   localStorage.setItem("county/"+this.countyState+"/"+this.getYYYYMString(date),JSON.stringify(data));
+          // }
+          if(this.countyData[this.countyState]==null){
+            this.countyData[this.countyState] = {};
+          }
+          this.countyData[this.countyState] = {...this.countyData[this.countyState], ...data}
+        }
+        else{
+          if(this.countyData[this.countyState]==null){
+            this.countyData[this.countyState] = {};
+          }
+          this.countyData[this.countyState] = {...this.countyData[this.countyState], ...JSON.parse(tempData)}
+        }
+      }
       date.setDate(date.getDate() + 1);
     }
   }
@@ -257,19 +353,33 @@ export class AppComponent {
       this.graphLabels.push(this.formatDate(date));
       date.setDate(date.getDate() + 1);
     }
-    for(let state of this.selectedStates){
+    for(let area of (this.showCounties ? this.selectedCounties : this.selectedStates)){
       let color = this.getColor();
-      this.graphData.push({data:this.getStateForRange(state), label: state, backgroundColor: color+"50", borderColor: color+"dd"});
+      this.graphData.push({
+        data:this.getStatForRange(area),
+        label: ((this.showCounties && area.length>2) ? (this.fipsData[area] ?? {}).county : this.stateNames[area]) ?? "",
+        id:area,
+        backgroundColor: color+"50", borderColor: color+"dd"});
     }
-    this.oldSelectedStates = [...this.selectedStates];
-    this.mapDate = new Date(this.endDate.getTime());
+    if(this.showCounties){
+      this.oldSelectedCounties = [...this.selectedCounties];
+    }
+    else{
+      this.oldSelectedStates = [...this.selectedStates];
+    }
+    if(this.mapDate.getTime()>this.endDate.getTime()){
+      this.mapDate = new Date(this.endDate.getTime());
+    }
+    else if(this.mapDate.getTime()<this.startDate.getTime()){
+      this.mapDate = new Date(this.startDate.getTime());
+    }
     this.updateMap();
   }
 
   //Update the numbers of the graphs (cases vs deaths vs casesPer100k, etc)
   updateGraphDataType(){
     for(let data of this.graphData){
-      data.data = this.getStateForRange(data.label);
+      data.data = this.getStatForRange(data.id);
     }
     this.updateMap();
   }
@@ -278,35 +388,47 @@ export class AppComponent {
   async updateGraphDataStat(){
     await this.loadData();
     for(let data of this.graphData){
-      data.data = this.getStateForRange(data.label);
+      data.data = this.getStatForRange(data.id);
     }
     this.updateMap();
   }
 
   //update the states in the dataset
   updateGraphDataStates(){
+    let currentAreas = (this.showCounties ? this.selectedCounties : this.selectedStates);
+    let oldAreas = (this.showCounties ? this.oldSelectedCounties : this.oldSelectedStates)
     let removed = [];
-    for(let old of this.oldSelectedStates){
-      if(this.selectedStates.indexOf(old)==-1){
+    for(let old of oldAreas){
+      if(currentAreas.indexOf(old)==-1){
         removed.push(old);
       }
     }
     let added = [];
-    for(let sel of this.selectedStates){
-      if(this.oldSelectedStates.indexOf(sel)==-1){
-        added.push(sel);
+    for(let area of currentAreas){
+      if(oldAreas.indexOf(area)==-1){
+        added.push(area);
       }
     }
     for(let add of added){
       let color = this.getColor();
-      this.graphData.push({data:this.getStateForRange(add), label: add, backgroundColor: color+"50", borderColor: color+"dd"});
+      this.graphData.push({
+        data:this.getStatForRange(add),
+        label: ((this.showCounties && add.length>2) ? (this.fipsData[add] ?? {}).county : this.stateNames[add]) ?? "",
+        id:add,
+        backgroundColor: color+"50",
+        borderColor: color+"dd"});
     }
     for(let remove of removed){
-      let index = this.graphData.findIndex((el) => el.label==remove);
+      let index = this.graphData.findIndex((el) => el.id==remove);
       this.graphData.splice(index,1);
       // }
     }
-    this.oldSelectedStates = [...this.selectedStates];
+    if(this.showCounties){
+      this.oldSelectedCounties = [...this.selectedCounties];
+    }
+    else{
+      this.oldSelectedStates = [...this.selectedStates];
+    }
   }
 
   getColor(): string{
@@ -341,7 +463,6 @@ export class AppComponent {
   getDateFromString(str: string){
     let split = str.split("-");
     return new Date(Number(split[0]), Number(split[1])-1,Number(split[2]));
-
   }
 
   getYYYYMString(d:Date): string{
@@ -380,17 +501,15 @@ export class AppComponent {
 
   updateMap(){
     // @ts-ignore
-    console.log(this.myChart.chart.annotation);
-    // @ts-ignore
     this.myChart.chart.annotation.elements['dateline'].options.value = this.formatDate(this.mapDate);
     this.myChart.chart.update();
-    let usTotal = this.getStat(this.mapDate, "US");
+    let total = this.showCounties ? this.getStat(this.mapDate,this.countyState) : this.getStat(this.mapDate, "US");
     this.selectedData = {};
-    for(let s of this.states){
-      let val = this.getStat(this.mapDate, s);
+    for(let area of (this.showCounties ? this.countyList : this.states)){
+      let val = this.getStat(this.mapDate, area);
       let hex = "ff";
       if(this.selectedDataOption=="cases" || this.selectedDataOption=="deaths"){
-        let adjustedValue = Math.round(255 - val/usTotal*255.0 * 7.0);
+        let adjustedValue = Math.round(255 - val/total*255.0 * 7.0);
         if(adjustedValue<0){
           adjustedValue = 0;
         }
@@ -409,13 +528,13 @@ export class AppComponent {
           hex = "0"+hex;
         }
       }
-      this.selectedData[s] = {
+      this.selectedData[area] = {
         value: val.toFixed((this.selectedDataOption == "casesPer100k" || this.selectedDataOption == "deathsPer10M") ? 2 : 0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           +' '+ ((this.selectedDataOption == "cases" || this.selectedDataOption == "casesPer100k") ? "cases" : "deaths"),
         color: "#ff" + hex + hex
       }
     }
-    this.usData = usTotal.toFixed((this.selectedDataOption == "casesPer100k" || this.selectedDataOption == "deathsPer10M") ? 2 : 0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+    this.totalData = total.toFixed((this.selectedDataOption == "casesPer100k" || this.selectedDataOption == "deathsPer10M") ? 2 : 0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")
       +' '+ ((this.selectedDataOption == "cases" || this.selectedDataOption == "casesPer100k") ? "cases" : "deaths");
   }
 }

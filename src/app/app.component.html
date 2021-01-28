@@ -23,13 +23,27 @@
     </mat-option>
   </mat-select>
 </mat-form-field>
-<mat-form-field appearance="fill">
-  <mat-label>States to Graph</mat-label>
+<mat-form-field *ngIf="!showCounties" appearance="fill">
+  <mat-label>Selected States</mat-label>
   <mat-select [(value)]="selectedStates" multiple (selectionChange)="updateGraphDataStates()">
     <mat-option *ngFor="let s of statesAndUs" [value]="s">{{stateNames[s]}}</mat-option>
   </mat-select>
 </mat-form-field>
-
+<mat-form-field *ngIf="showCounties" appearance="fill">
+  <mat-label>Selected Counties</mat-label>
+  <mat-select [(value)]="selectedCounties" multiple (selectionChange)="updateGraphDataStates()">
+    <mat-option *ngFor="let fips of (getCountyList() || [])" [value]="fips">{{fips.length==2 ? stateNames[fips] : fipsData[fips].county}}</mat-option>
+  </mat-select>
+</mat-form-field>
+<mat-form-field *ngIf="showCounties"  appearance="fill">
+  <mat-label>State</mat-label>
+  <mat-select [(value)]="countyState" (selectionChange)="changeState()">
+    <mat-option *ngFor="let s of states" [value]="s">
+      {{stateNames[s]}}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+<button mat-raised-button color="primary" (click)="toggleStateCounty()">Switch to {{showCounties ? "State" : "County"}} view</button>
 <main>
   <div style="display: block;" id="graph">
     <canvas baseChart
@@ -44,13 +58,11 @@
   </div>
   <div>
     <span id="map-date">{{formatDate(mapDate)}}</span><br>
-    <span id="map-us">US Total: {{usData}}</span>
+    <span id="map-us">{{showCounties ? stateNames[countyState] : "US"}} Total: {{totalData}}</span>
     <div id="map-chart">
-      <app-states-map [data]="selectedData"></app-states-map>
+      <app-counties-map *ngIf="showCounties" [data]="selectedData || {}" [countyList]="countyList" [state]="countyState"></app-counties-map>
+      <app-states-map *ngIf="!showCounties" [data]="selectedData || {}"></app-states-map>
     </div>
   </div>
-
 </main>
-
-
 
