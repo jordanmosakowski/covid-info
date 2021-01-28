@@ -4,6 +4,7 @@ import {BaseChartDirective, Label,} from 'ng2-charts';
 import {ChartDataSets} from 'chart.js';
 import * as pluginAnnotations from 'chartjs-plugin-annotation';
 import * as fipsCountyJson from './fips-county.json';
+import {SaveState} from "./interfaces";
 
 @Component({
   selector: 'app-root',
@@ -158,11 +159,13 @@ export class AppComponent {
   };
   graphLabels: Label[];
   graphData;
+  saveStates: SaveState[];
 
   constructor(private http: HttpClient) {
     this.showCounties = false;
     this.graphLabels = [];
     this.graphData = [];
+    this.saveStates = JSON.parse(localStorage.getItem("saveStates") ?? "[]");
 
     this.oldSelectedStates = [];
     this.selectedStates = ["US"];
@@ -182,6 +185,46 @@ export class AppComponent {
     this.startDate = new Date(2021,0,1);
     this.endDate = new Date(2021,0,20);
     this.mapDate = this.endDate;
+    this.updateGraphDateRange(" ");
+  }
+
+  saveCurrentState(){
+    let state: SaveState;
+    state = {
+      start: this.startDate.getTime(),
+      end: this.endDate.getTime(),
+      dataOption: this.selectedDataOption,
+      spread: this.selectedSpread,
+      counties: this.showCounties,
+      areaList: this.showCounties ? this.selectedCounties : this.selectedStates,
+    };
+    if(this.showCounties){
+      state.countyState = this.countyState;
+    }
+    this.saveStates.push(state);
+    localStorage.setItem("saveStates",JSON.stringify(this.saveStates));
+  }
+
+  loadSaveState(state: SaveState){
+    this.startDate = new Date(state.start);
+    this.endDate = new Date(state.end);
+    this.selectedDataOption = state.dataOption;
+    this.selectedSpread = state.spread;
+    this.showCounties = state.counties;
+    if(state.counties){
+      this.selectedCounties = state.areaList;
+      this.countyState = state.countyState;
+      this.oldSelectedCounties = [];
+      this.countyList = [];
+      for(let fips of Object.keys(this.fipsData)){
+        if(this.fipsData[fips].state == this.countyState){
+          this.countyList.push(fips);
+        }
+      }
+    }
+    else{
+      this.selectedStates = state.areaList;
+    }
     this.updateGraphDateRange(" ");
   }
 

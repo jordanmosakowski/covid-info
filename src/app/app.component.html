@@ -44,6 +44,7 @@
   </mat-select>
 </mat-form-field>
 <button mat-raised-button color="primary" (click)="toggleStateCounty()">Switch to {{showCounties ? "State" : "County"}} view</button>
+<button mat-raised-button color="primary" (click)="saveCurrentState()">Save current view</button>
 <main>
   <div style="display: block;" id="graph">
     <canvas baseChart
@@ -66,3 +67,4 @@
   </div>
 </main>
 
+<button *ngFor="let state of saveStates" mat-raised-button color="primary" (click)="loadSaveState(state)">Load {{state}}</button>
