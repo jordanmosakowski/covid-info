@@ -32,7 +32,7 @@
 <mat-form-field *ngIf="showCounties" appearance="fill">
   <mat-label>Selected Counties</mat-label>
   <mat-select [(value)]="selectedCounties" multiple (selectionChange)="updateGraphDataStates()">
-    <mat-option *ngFor="let fips of (getCountyList() || [])" [value]="fips">{{fips.length==2 ? stateNames[fips] : fipsData[fips].county}}</mat-option>
+    <mat-option *ngFor="let fips of (getCountyList() || [])" [value]="fips">{{fips.length==2 ? (stateNames[fips] + ' (Total)') : fipsData[fips].county}}</mat-option>
   </mat-select>
 </mat-form-field>
 <mat-form-field *ngIf="showCounties"  appearance="fill">

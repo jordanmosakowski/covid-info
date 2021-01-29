@@ -137,7 +137,17 @@ export class AppComponent {
     },
     tooltips: {
       intersect: false,
-      mode: 'index'
+      mode: 'index',
+      callbacks: {
+        label: function(tooltipItem, data) {
+          var label = data.datasets[tooltipItem.datasetIndex].label || '';
+          if (label) {
+            label += ': ';
+          }
+          label += (Math.round(tooltipItem.yLabel * 100) / 100).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+          return label;
+        }
+      }
     },
     elements: {
       point:
@@ -320,7 +330,7 @@ export class AppComponent {
         if(tempData == null){
           let data: any;
           data = await this.http.get("http://localhost:4201/data/county/"+this.countyState+"/"+this.getYYYYMString(date)+".json").toPromise();
-          //currently it is possible
+          //currently it is possible to run out of storage... need to figure out how to fix
           // if(data.final==true){
           //   localStorage.setItem("county/"+this.countyState+"/"+this.getYYYYMString(date),JSON.stringify(data));
           // }
