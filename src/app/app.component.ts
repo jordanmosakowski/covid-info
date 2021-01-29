@@ -357,12 +357,17 @@ export class AppComponent {
       if(this.stateData[this.formatDate(date)]==null){
         let tempData = localStorage.getItem("state/"+this.getYYYYMString(date));
         if(tempData == null){
-          let data: any;
-          data = await this.http.get("http://localhost:4201/data/state/"+this.getYYYYMString(date)+".json").toPromise();
-          if(data.final==true){
-            localStorage.setItem("state/"+this.getYYYYMString(date),JSON.stringify(data));
+          try{
+            let data: any;
+            data = await this.http.get("http://localhost:4201/data/state/"+this.getYYYYMString(date)+".json").toPromise();
+            if(data.final==true){
+              localStorage.setItem("state/"+this.getYYYYMString(date),JSON.stringify(data));
+            }
+            this.stateData = {...this.stateData, ...data}
           }
-          this.stateData = {...this.stateData, ...data}
+          catch (e){
+            console.log(e);
+          }
         }
         else{
           this.stateData = {...this.stateData, ...JSON.parse(tempData)}
@@ -371,16 +376,21 @@ export class AppComponent {
       if(this.showCounties && (this.countyData[this.countyState] ?? {})[this.formatDate(date)]==null){
         let tempData = localStorage.getItem("county/"+this.countyState+"/"+this.getYYYYMString(date));
         if(tempData == null){
-          let data: any;
-          data = await this.http.get("http://localhost:4201/data/county/"+this.countyState+"/"+this.getYYYYMString(date)+".json").toPromise();
-          //currently it is possible to run out of storage... need to figure out how to fix
-          // if(data.final==true){
-          //   localStorage.setItem("county/"+this.countyState+"/"+this.getYYYYMString(date),JSON.stringify(data));
-          // }
-          if(this.countyData[this.countyState]==null){
-            this.countyData[this.countyState] = {};
+          try{
+            let data: any;
+            data = await this.http.get("http://localhost:4201/data/county/"+this.countyState+"/"+this.getYYYYMString(date)+".json").toPromise();
+            //currently it is possible to run out of storage... need to figure out how to fix
+            // if(data.final==true){
+            //   localStorage.setItem("county/"+this.countyState+"/"+this.getYYYYMString(date),JSON.stringify(data));
+            // }
+            if(this.countyData[this.countyState]==null){
+              this.countyData[this.countyState] = {};
+            }
+            this.countyData[this.countyState] = {...this.countyData[this.countyState], ...data}
           }
-          this.countyData[this.countyState] = {...this.countyData[this.countyState], ...data}
+          catch(e){
+            console.log(e);
+          }
         }
         else{
           if(this.countyData[this.countyState]==null){
