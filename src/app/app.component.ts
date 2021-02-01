@@ -5,6 +5,7 @@ import {ChartDataSets} from 'chart.js';
 import * as pluginAnnotations from 'chartjs-plugin-annotation';
 import * as fipsCountyJson from './fips-county.json';
 import {SaveState} from "./interfaces";
+import {MatDrawer} from "@angular/material/sidenav";
 
 @Component({
   selector: 'app-root',
@@ -18,6 +19,7 @@ export class AppComponent {
   public lineChartPlugins = [pluginAnnotations];
 
   @ViewChild(BaseChartDirective) myChart: BaseChartDirective;
+  @ViewChild("drawer") drawer: MatDrawer;
 
   startDate: Date;
   endDate: Date;
@@ -94,7 +96,6 @@ export class AppComponent {
     //   title: "14 day trend",
     // },
   ];
-
 
   selectedStates: string[];
   oldSelectedStates: string[];

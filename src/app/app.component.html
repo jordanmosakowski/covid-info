@@ -1,70 +1,90 @@
-<mat-form-field appearance="fill">
-  <mat-label>Enter a date range</mat-label>
-  <mat-date-range-input [rangePicker]="rangePicker" [min]="minDate" [max]="maxDate">
-    <input matStartDate placeholder="Start date" [(ngModel)]="startDate">
-    <input matEndDate placeholder="End date" [(ngModel)]="endDate" (dateChange)="updateGraphDateRange($event.target.value)">
-  </mat-date-range-input>
-  <mat-datepicker-toggle matSuffix [for]="rangePicker"></mat-datepicker-toggle>
-  <mat-date-range-picker #rangePicker></mat-date-range-picker>
-</mat-form-field>
-<mat-form-field appearance="fill">
-  <mat-label>Data To Show</mat-label>
-  <mat-select [(value)]="selectedDataOption" (selectionChange)="updateGraphDataType()"> <!--/*updateSelectedData($event.value)*/-->
-    <mat-option *ngFor="let option of dataOptions" [value]="option.id">
-      {{option.title}}
-    </mat-option>
-  </mat-select>
-</mat-form-field>
-<mat-form-field appearance="fill">
-  <mat-label>Statistic</mat-label>
-  <mat-select [(value)]="selectedSpread" (selectionChange)="updateGraphDataStat()">
-    <mat-option *ngFor="let option of spreadOptions" [value]="option.id">
-      {{option.title}}
-    </mat-option>
-  </mat-select>
-</mat-form-field>
-<mat-form-field *ngIf="!showCounties" appearance="fill">
-  <mat-label>Selected States</mat-label>
-  <mat-select [(value)]="selectedStates" multiple (selectionChange)="updateGraphDataStates()">
-    <mat-option *ngFor="let s of statesAndUs" [value]="s">{{stateNames[s]}}</mat-option>
-  </mat-select>
-</mat-form-field>
-<mat-form-field *ngIf="showCounties" appearance="fill">
-  <mat-label>Selected Counties</mat-label>
-  <mat-select [(value)]="selectedCounties" multiple (selectionChange)="updateGraphDataStates()">
-    <mat-option *ngFor="let fips of (getCountyList() || [])" [value]="fips">{{fips.length==2 ? (stateNames[fips] + ' (Total)') : fipsData[fips].county}}</mat-option>
-  </mat-select>
-</mat-form-field>
-<mat-form-field *ngIf="showCounties"  appearance="fill">
-  <mat-label>State</mat-label>
-  <mat-select [(value)]="countyState" (selectionChange)="changeState()">
-    <mat-option *ngFor="let s of states" [value]="s">
-      {{stateNames[s]}}
-    </mat-option>
-  </mat-select>
-</mat-form-field>
-<button mat-raised-button color="primary" (click)="toggleStateCounty()">Switch to {{showCounties ? "State" : "County"}} view</button>
-<button mat-raised-button color="primary" (click)="saveCurrentState()">Save current view</button>
-<main>
-  <div style="display: block;" id="graph">
-    <canvas baseChart
-            (chartClick)="chartClicked($event)"
-            [datasets]="graphData"
-            [labels]="graphLabels"
-            [options]="graphOptions"
-            [legend]="true"
-            [plugins]="lineChartPlugins"
-            [chartType]="'line'">
-    </canvas>
-  </div>
-  <div>
-    <span id="map-date">{{formatDate(mapDate)}}</span><br>
-    <span id="map-us">{{showCounties ? stateNames[countyState] : "US"}} Total: {{totalData}}</span>
-    <div id="map-chart">
-      <app-counties-map *ngIf="showCounties" [data]="selectedData || {}" [countyList]="countyList" [state]="countyState"></app-counties-map>
-      <app-states-map *ngIf="!showCounties" [data]="selectedData || {}"></app-states-map>
-    </div>
-  </div>
-</main>
+<mat-drawer-container class="drawer-container" autosize>
+  <mat-drawer #drawer class="drawer-sidenav" mode="side">
+<!--    <button mat-icon-button (click)="toggleDarkMode()">-->
+<!--      <mat-icon>{{darkMode ? "dark_mode" : "light_mode"}}</mat-icon>-->
+<!--    </button>-->
+    <mat-list>
+      <div mat-subheader>Saves</div>
+      <mat-list-item *ngFor="let state of saveStates" (click)="loadSaveState(state); drawer.close()">
+        <div mat-line>{{state.counties ? ("Counties: " + state.countyState) : "States"}}</div>
+        <div mat-line> {{state.dataOption}}, {{state.spread}} </div>
+      </mat-list-item>
+    </mat-list>
+  </mat-drawer>
 
-<button *ngFor="let state of saveStates" mat-raised-button color="primary" (click)="loadSaveState(state)">Load {{state}}</button>
+  <div class="main-content">
+    <button mat-icon-button color="accent" (click)="drawer.toggle()">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <mat-form-field appearance="fill">
+      <mat-label>Enter a date range</mat-label>
+      <mat-date-range-input [rangePicker]="rangePicker" [min]="minDate" [max]="maxDate">
+        <input matStartDate placeholder="Start date" [(ngModel)]="startDate">
+        <input matEndDate placeholder="End date" [(ngModel)]="endDate" (dateChange)="updateGraphDateRange($event.target.value)">
+      </mat-date-range-input>
+      <mat-datepicker-toggle matSuffix [for]="rangePicker"></mat-datepicker-toggle>
+      <mat-date-range-picker #rangePicker></mat-date-range-picker>
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <mat-label>Data To Show</mat-label>
+      <mat-select [(value)]="selectedDataOption" (selectionChange)="updateGraphDataType()"> <!--/*updateSelectedData($event.value)*/-->
+        <mat-option *ngFor="let option of dataOptions" [value]="option.id">
+          {{option.title}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <mat-label>Statistic</mat-label>
+      <mat-select [(value)]="selectedSpread" (selectionChange)="updateGraphDataStat()">
+        <mat-option *ngFor="let option of spreadOptions" [value]="option.id">
+          {{option.title}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field *ngIf="!showCounties" appearance="fill">
+      <mat-label>Selected States</mat-label>
+      <mat-select [(value)]="selectedStates" multiple (selectionChange)="updateGraphDataStates()">
+        <mat-option *ngFor="let s of statesAndUs" [value]="s">{{stateNames[s]}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field *ngIf="showCounties" appearance="fill">
+      <mat-label>Selected Counties</mat-label>
+      <mat-select [(value)]="selectedCounties" multiple (selectionChange)="updateGraphDataStates()">
+        <mat-option *ngFor="let fips of (getCountyList() || [])" [value]="fips">{{fips.length==2 ? (stateNames[fips] + ' (Total)') : fipsData[fips].county}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field *ngIf="showCounties"  appearance="fill">
+      <mat-label>State</mat-label>
+      <mat-select [(value)]="countyState" (selectionChange)="changeState()">
+        <mat-option *ngFor="let s of states" [value]="s">
+          {{stateNames[s]}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="toggleStateCounty()">Switch to {{showCounties ? "State" : "County"}} view</button>
+    <button mat-raised-button color="primary" (click)="saveCurrentState()">Save current view</button>
+    <main>
+      <div style="display: block;" id="graph">
+        <canvas baseChart
+                (chartClick)="chartClicked($event)"
+                [datasets]="graphData"
+                [labels]="graphLabels"
+                [options]="graphOptions"
+                [legend]="true"
+                [plugins]="lineChartPlugins"
+                [chartType]="'line'">
+        </canvas>
+      </div>
+      <div>
+        <span id="map-date">{{formatDate(mapDate)}}</span><br>
+        <span id="map-us">{{showCounties ? stateNames[countyState] : "US"}} Total: {{totalData}}</span>
+        <div id="map-chart">
+          <app-counties-map *ngIf="showCounties" [data]="selectedData || {}" [countyList]="countyList" [state]="countyState"></app-counties-map>
+          <app-states-map *ngIf="!showCounties" [data]="selectedData || {}"></app-states-map>
+        </div>
+      </div>
+    </main>
+  </div>
+
+
+</mat-drawer-container>

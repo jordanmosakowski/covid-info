@@ -1,11 +1,7 @@
-//#map-chart{
-//  display:flex;
-//}
-
 main{
   display: grid;
   grid-template-columns: 50vw auto;
-  height: 600px;
+  //height: 600px;
 }
 
 canvas{
@@ -26,4 +22,8 @@ mat-form-field, button{
   line-height: 24px;
   margin-right:0.5rem;
   margin-bottom:0.5rem;
+}
+
+mat-list-item:hover{
+  cursor: pointer;
 }
