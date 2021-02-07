@@ -196,7 +196,7 @@ export class AppComponent {
     this.maxDate = new Date();
 
     this.startDate = new Date(2021,0,1);
-    this.endDate = new Date(2021,0,20);
+    this.endDate = new Date();
     this.mapDate = this.endDate;
     this.updateGraphDateRange(" ");
   }
