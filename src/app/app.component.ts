@@ -172,6 +172,8 @@ export class AppComponent {
   graphData;
   saveStates: SaveState[];
 
+  baseUrl = "https://raw.githubusercontent.com/jordanmosakowski/covid-info/main/";
+
   constructor(private http: HttpClient) {
     this.showCounties = false;
     this.graphLabels = [];
@@ -360,7 +362,7 @@ export class AppComponent {
         if(tempData == null){
           try{
             let data: any;
-            data = await this.http.get("http://localhost:4201/data/state/"+this.getYYYYMString(date)+".json").toPromise();
+            data = await this.http.get(this.baseUrl+"data/state/"+this.getYYYYMString(date)+".json").toPromise();
             if(data.final==true){
               localStorage.setItem("state/"+this.getYYYYMString(date),JSON.stringify(data));
             }
@@ -379,7 +381,7 @@ export class AppComponent {
         if(tempData == null){
           try{
             let data: any;
-            data = await this.http.get("http://localhost:4201/data/county/"+this.countyState+"/"+this.getYYYYMString(date)+".json").toPromise();
+            data = await this.http.get(this.baseUrl+"data/county/"+this.countyState+"/"+this.getYYYYMString(date)+".json").toPromise();
             //currently it is possible to run out of storage... need to figure out how to fix
             // if(data.final==true){
             //   localStorage.setItem("county/"+this.countyState+"/"+this.getYYYYMString(date),JSON.stringify(data));
