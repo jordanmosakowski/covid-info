@@ -46,7 +46,7 @@ async function convertCountyData(){
     let year = 2021;
     let month = 1;
     let filtered = Object.keys(stateData).filter(key => key.indexOf(monthString(year, month))>-1).reduce((obj, key) => {obj[key] = stateData[key]; return obj;}, {});
-    while(year===2020 || (year===2021 && month<=4)){
+    while(year===2020 || (year===2021 && month<=5)){
       if(Object.keys(filtered).length>0){
         if(year === 2020){
           filtered.final = true;
